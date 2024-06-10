@@ -7,13 +7,13 @@ from get_embedding_function import get_embedding_function
 CHROMA_PATH = "chroma"
 
 PROMPT_TEMPLATE = """
-Answer the question based only on the following context:
+Responda as perguntas com base somente no contexto a seguir:
 
 {context}
 
 ---
 
-Answer the question based on the above context: {question}
+Responda as perguntas com base no contexto acima: {question}
 """
 
 def main():
@@ -36,13 +36,17 @@ def query_rag(query_text: str):
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query_text)
 
-    model = Ollama(model="mistral")
-    response_text = model.invoke(prompt)
+    # Load the model outside the loop.
+    model = Ollama(model="LukasM")
 
-    # Include both the ID and the content of each source document.
+    # Batch process the documents.
     sources = [(doc.metadata.get("id", None), doc.page_content) for doc, _score in results]
     formatted_sources = "\n\n".join([f"ID: {id}\n\nContent:\n{content}" for id, content in sources])
-    formatted_response = f"\n\nResponse:\n{response_text}\n\nSources:\n{formatted_sources}"
+    
+    # Batch process the prompts.
+    response_text = model.invoke(prompt)
+
+    formatted_response = f"\n\nResponse:\n{response_text}\n"
     print(formatted_response)
     return response_text
 
